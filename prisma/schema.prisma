@@ -1,0 +1,214 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model School {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  joinCode    String   @unique
+  region      String?
+  createdAt   DateTime @default(now())
+  users       User[]
+  programs    Program[]
+  books       LibraryBook[]
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  studentId        String?   @unique
+  passwordHash     String
+  role             String
+  displayName      String
+  nickname         String?
+  gender           String?
+  bio              String?
+  favoriteAnimal   String?
+  avatarEmoji      String    @default("🦎")
+  avatarImageUrl   String?
+  themeHue         Int       @default(160)
+  points           Int       @default(0)
+  schoolId         String?
+  school           School?   @relation(fields: [schoolId], references: [id])
+  publicProfile    Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  submissions      Submission[]
+  messagesSent     Message[] @relation("MsgFrom")
+  messagesReceived Message[] @relation("MsgTo")
+  activitiesOwned  Activity[] @relation("TeacherActivities")
+  checkIns         DailyCheckIn[]
+  taskCompletions  UserTaskCompletion[]
+  redemptions      Redemption[]
+  libraryReadings  LibraryReadingDay[]
+  shareEvents      ShareEventDay[]
+  speciesVisits    SpeciesVisitDay[]
+}
+
+model LibraryReadingDay {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day       String
+  seconds   Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, day])
+}
+
+model ShareEventDay {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day       String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, day])
+}
+
+model SpeciesVisitDay {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day       String
+  slug      String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, day, slug])
+}
+
+model Species {
+  id                  String   @id @default(cuid())
+  slug                String   @unique
+  commonName          String
+  scientificName      String
+  summary             String
+  description         String
+  habitat             String
+  conservationStatus  String
+  regionLabel         String   @default("Global")
+  populationEstimate  String   @default("See IUCN Red List")
+  temperament         String   @default("Varies")
+  imageUrl            String   @default("/images/species/giant-panda.png")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Program {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  schoolId    String?
+  school      School?    @relation(fields: [schoolId], references: [id])
+  activities  Activity[]
+  createdAt   DateTime   @default(now())
+}
+
+model Activity {
+  id           String       @id @default(cuid())
+  programId    String
+  program      Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
+  teacherId    String
+  teacher      User         @relation("TeacherActivities", fields: [teacherId], references: [id])
+  title        String
+  instructions String
+  dueAt        DateTime?
+  submissions  Submission[]
+  createdAt    DateTime     @default(now())
+}
+
+model Submission {
+  id         String   @id @default(cuid())
+  activityId String
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  body       String
+  isPublicToSchoolLibrary Boolean @default(true)
+  createdAt  DateTime @default(now())
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  fromId    String
+  from      User     @relation("MsgFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId      String
+  to        User     @relation("MsgTo", fields: [toId], references: [id], onDelete: Cascade)
+  body      String
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+}
+
+model LibraryBook {
+  id          String   @id @default(cuid())
+  title       String
+  author      String
+  summary     String
+  topics      String
+  coverUrl    String?
+  schoolId    String?
+  school      School?  @relation(fields: [schoolId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model DailyTaskDefinition {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  title        String
+  description  String
+  pointsReward Int
+  sortOrder    Int      @default(0)
+  completions  UserTaskCompletion[]
+}
+
+model UserTaskCompletion {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId    String
+  task      DailyTaskDefinition @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  day       String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, taskId, day])
+}
+
+model DailyCheckIn {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  day       String
+  points    Int      @default(5)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, day])
+}
+
+model RewardProduct {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String
+  pointsCost  Int
+  category    String
+  animalTheme String
+  imageUrl    String
+  sortOrder   Int      @default(0)
+  redemptions Redemption[]
+}
+
+model Redemption {
+  id                 String   @id @default(cuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId          String
+  product            RewardProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  chosenSpeciesSlug  String
+  status             String   @default("PENDING")
+  createdAt          DateTime @default(now())
+}

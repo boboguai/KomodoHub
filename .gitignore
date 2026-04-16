@@ -1,0 +1,68 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.envrc
+.env*.local
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/dev.db
+/prisma/dev.db-journal
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+/src/generated/prisma
+
+# Tauri: large generated Next standalone bundle (keep README in repo)
+/src-tauri/server_bundle/*
+!/src-tauri/server_bundle/README.txt
+
+/.tauri-dist/
+
+# Server build output (compiled JS bundle)
+/server/dist/
+
+# Desktop / packaging outputs (upload only dev source)
+/desktop/
+/standalone-app/
+/electron/
+
+# Embedded runtime binaries (to keep repo small & upload only dev source)
+# If you want others to build/install offline from GitHub, remove this ignore rule.
+/src-tauri/resources/node/
+
+# Coursework / installer archives (optional: keep repo small)
+/coursework-delivery-2person/
+*.zip
+*.exe
+*.msi
